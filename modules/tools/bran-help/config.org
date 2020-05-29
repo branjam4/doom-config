@@ -1,0 +1,62 @@
+#+TITLE: Config
+
+* asx (ask stackexchange)
+:PROPERTIES:
+:CUSTOM_ID: asx-custom
+:END:
+#+NAME: asx-package
+#+BEGIN_SRC elisp
+(package! asx)                          ;ask stackexchange
+#+END_SRC
+
+Ask stackexchange uses search suggestions and the org-mode interface to quickly
+browse answers to questions in org-mode. It works pretty well without further
+config (i.e. M-x RET asx) but I like it enough to include it with the search
+prefix key ('s')
+#+NAME: asx-config
+#+BEGIN_SRC elisp
+(use-package! asx
+  :commands (asx)
+  :preface
+  (map! :leader
+        :prefix "s"
+        :desc "Search Stackexchange" "x" #'asx))
+#+END_SRC
+* wiki-summary
+:PROPERTIES:
+:CUSTOM-ID: wiki-summary-custom
+:END:
+#+NAME: wiki-summary-package
+#+BEGIN_SRC elisp
+(package! wiki-summary)
+#+END_SRC
+Does not offer fuzzy search capabilities yet, strictly finds exact search terms. Only defaults to last word if there's a highlighted region, but can retrieve summaries of multiple words. Finicky though, in my opinion.
+Might be helpful for something obscure, but not necessarily for finding a well curated summary of something common.
+#+NAME: wiki-summary-config
+#+BEGIN_SRC elisp
+(use-package! wiki-summary
+  :commands (wiki-summary wiki-summary-insert)
+  :init
+  (map! :leader
+        (:prefix "s"
+         :desc "Fetch wiki summary" "w" #'wiki-summary
+         :desc "Insert wiki summary at point" "W" #'wiki-summary-insert)))
+#+END_SRC
+* tangle
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; tools/bran-help/packages.el
+
+<<asx-package>>
+<<wiki-summary-package>>
+
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle config.el :noweb yes
+;;; tools/bran-help/config.el -*- lexical-binding: t; -*-
+
+<<asx-config>>
+
+<<wiki-summary-config>>
+
+#+END_SRC

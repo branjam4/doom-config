@@ -1,0 +1,120 @@
+#+TITLE: Config
+
+* eww
+** shrface
+:PROPERTIES:
+:CUSTOM_ID: shrface-custom
+:END:
+#+NAME: shrface-package
+#+BEGIN_SRC elisp
+(package! shrface :pin "a146e7d257")
+#+END_SRC
+#+NAME: shrface-config
+#+BEGIN_SRC elisp
+(use-package! shrface
+  :after shr
+  :custom
+  (shrface-paragraph-indentation 2)
+  (shrface-paragraph-fill-column 80)
+  :config
+  (shrface-basic)
+  (shrface-trial))
+
+(add-hook 'eww-after-render-hook 'shrface-mode)
+
+(map! :map eww-mode-map
+      :after eww
+      :n "<tab>" 'org-cycle
+      :n "<backtab>" 'org-shifttab)
+#+END_SRC
+* w3m
+** w3m
+:PROPERTIES:
+:CUSTOM-ID: w3m-custom
+:END:
+#+NAME: w3m-package
+#+BEGIN_SRC elisp
+(package! w3m :pin "e522a44b15")
+#+END_SRC
+#+NAME: w3m-config
+#+BEGIN_SRC elisp
+(use-package! w3m
+  :commands (w3m)
+  :init
+  (setq w3m-display-mode 'plain))
+#+END_SRC
+** inherit-org
+:PROPERTIES:
+:CUSTOM_ID: inherit-org-custom
+:END:
+#+NAME: inherit-org-package
+#+BEGIN_SRC elisp
+(package! inherit-org :recipe (:host github :repo "chenyanming/inherit-org"))
+#+END_SRC
+#+NAME: inherit-org-config
+#+BEGIN_SRC elisp
+(use-package! inherit-org
+  :commands (inherit-org-mode inherit-org-w3m-headline-fontify))
+
+  (after! info
+    (add-hook 'Info-mode-hook 'inherit-org-mode))
+
+  (after! helpful
+    (add-hook 'helpful-mode-hook 'inherit-org-mode))
+
+  (after! w3m
+    (add-hook 'w3m-fontify-before-hook 'inherit-org-w3m-headline-fontify) ;only one level is supported
+    (add-hook 'w3m-fontify-after-hook 'inherit-org-mode))
+
+(map! :map w3m-mode-map
+      :after w3m
+      :n "<tab>" 'org-cycle
+      :n "<S-iso-lefttab>" 'org-shifttab
+      :n "&" 'w3m-external-view-current-url)
+#+END_SRC
+* browse-url
+:PROPERTIES:
+:CUSTOM_ID: browse-url-custom
+:END:
+#+NAME: browse-url-config
+#+BEGIN_SRC elisp
+(after! browse-url
+  (setq browse-url-browser-function 'w3m-browse-url
+        browse-url-new-window-flag 't))
+#+END_SRC
+* hnreader (Hacker News Reader)
+:PROPERTIES:
+:CUSTOM_ID: hnreader-custom
+:END:
+#+NAME: hnreader-package
+#+BEGIN_SRC elisp
+(package! hnreader)
+#+END_SRC
+
+This is cool! Seeing how:
++ stackexchange in org-mode via ~asx~ doesn't go deeper than one level
++ nnreddit in gnus (by default) lets you view the content of only one comment at a time
+
+It's nice to see a whole hackernews page in org-mode with nested formatting.
+Time will tell whether I start preferring this to reddit.
+* tangle
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; app/browse/packages.el
+
+(when (featurep! +w3m)
+  <<w3m-package>>
+  <<inherit-org-package>>)
+
+(when (featurep! +hnreader)
+  <<hnreader-package>>)
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle config.el :noweb yes
+;;; app/browse/config.el -*- lexical-binding: t; -*-
+
+(when (featurep! +w3m)
+  <<w3m-config>>
+  <<inherit-org-config>>
+  <<browse-url-config>>)
+#+END_SRC

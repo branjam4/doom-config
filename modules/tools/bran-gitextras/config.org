@@ -1,0 +1,20 @@
+#+TITLE: Config
+
+* git
+:PROPERTIES:
+:CUSTOM_ID: git-custom
+:END:
+#+NAME: github-packages
+#+BEGIN_SRC elisp
+(package! github-clone)
+(package! github-search)
+#+END_SRC
+* tangle
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; tools/bran-gitextras/packages.el
+
+(when (featurep! +github)
+  <<github-packages>>)
+
+#+END_SRC

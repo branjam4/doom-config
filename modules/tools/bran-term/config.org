@@ -1,0 +1,52 @@
+#+TITLE: Config
+
+* pinentry
+:PROPERTIES:
+:CUSTOM_ID: pinentry-custom
+:END:
+
+#+NAME: pinentry-package
+#+BEGIN_SRC elisp
+(package! pinentry)
+#+END_SRC
+
+Need this for terminal gpg authentication.
+
+#+NAME: pinentry-config
+#+BEGIN_SRC elisp
+(use-package! pinentry
+  :commands (pinentry-start))
+#+END_SRC
+
+Instructions as follows:
+#+BEGIN_SRC sh :tangle ~/.gnupg/gpg-agent.conf
+allow-emacs-pinentry
+#+END_SRC
+
+reload the configuration with:
+#+BEGIN_SRC sh
+gpgconf --reload gpg-agent
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC elisp
+(pinentry-start) ; start the server with M-x pinentry-start
+#+END_SRC
+
+#+RESULTS[7dbdf10e90959fea8d8b922ee1e078679223117d]:
+: Pinentry service is already running
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; tools/bran-term/packages.el
+
+<<pinentry-package>>
+
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle config.el :noweb yes
+;;; tools/bran-term/config.el -*- lexical-binding: t; -*-
+
+<<pinentry-config>>
+
+#+END_SRC

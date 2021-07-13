@@ -1,0 +1,473 @@
+#+TITLE: Config
+#+PROPERTY: header-args:elisp :noweb yes :cache yes
+
+* From init.el
+#+NAME: completion-modules
+#+BEGIN_SRC elisp
+:completion
+bran-ivy
+company
+(ivy
+ +prescient
+ +icons)
+#+END_SRC
+#+NAME: ui-modules
+#+BEGIN_SRC elisp
+:ui
+doom
+doom-dashboard
+doom-quit
+fill-column
+hl-todo
+hydra
+indent-guides
+modeline
+nav-flash
+ophints
+(popup
+ +defaults)
+treemacs
+vc-gutter
+vi-tilde-fringe
+window-select
+workspaces
+zen
+#+END_SRC
+#+NAME: editor-modules
+#+BEGIN_SRC elisp
+:editor
+(evil +everywhere)
+file-templates
+fold
+(format +onsave)
+lispy
+multiple-cursors
+parinfer
+rotate-text
+snippets
+word-wrap
+#+END_SRC
+#+NAME: emacs-modules
+#+BEGIN_SRC elisp
+:emacs
+(dired +icons)
+electric
+(ibuffer +icons)
+vc
+#+END_SRC
+#+NAME: term-modules
+#+BEGIN_SRC elisp
+:term
+eshell
+bran-eshell
+vterm
+#+END_SRC
+#+NAME: checkers-modules
+#+BEGIN_SRC elisp
+:checkers
+syntax
+spell
+grammar
+#+END_SRC
+#+NAME: tools-modules
+#+BEGIN_SRC elisp
+:tools
+biblio
+bran-help
+(bran-gitextras
+ +github)
+(:if (string-equal (system-name) "manjaro")
+ (bran-pack +aur)
+ (bran-pack))
+bran-term
+debugger
+direnv
+docker
+(eval +overlay)
+gist
+(lookup
+ +docsets)
+make
+<<magit-init>>
+pass
+pdf
+rgb
+#+END_SRC
+#+NAME: app-modules
+#+BEGIN_SRC elisp
+:app
+(browse
+ +w3m)
+#+END_SRC
+#+NAME: config-modules
+#+BEGIN_SRC elisp
+:config
+; literate
+(default +bindings +smartparens)
+#+END_SRC
+* Automated steps
+#+BEGIN_SRC sh
+docker run branjam4/doom-emacs
+#+END_SRC
+* Manual steps
+** Clone my private directory
+#+BEGIN_SRC sh
+git clone https://github.com/branjam4/doom-config ~/.doom.d
+#+END_SRC
+(or git@github.com:branjam4/doom-config.git)
+** Clone chemacs
+#+BEGIN_SRC sh
+git clone https://github.com/chemacs/chemacs
+#+END_SRC
+** Move existing emacs
+#+BEGIN_SRC sh
+mv ~/.emacs.d ~/.my-emacs.d
+#+END_SRC
+** Clone doom emacs
+#+BEGIN_SRC sh
+git clone https://github.com/hlissner/doom-emacs
+#+END_SRC
+** Point chemacs to public and private configuration directories
+Chemacs makes multiple emacs configurations easier to launch by augmenting the =emacs= command to recognize different emacs profiles. See its readme or ~.emacs~ file for more information.
+At minimum we need a ~user-emacs-directory~ to indicate where our emacs init file lives. But distributions like doom emacs look for private configurations as well. So we add their environmental variables to our emacs profile. Doom looks in your ~$DOOMDIR~ for a private config, but will make one at ~~/.doom.d~ if it does not exist.
+#+BEGIN_SRC elisp :tangle .emacs-profiles.el
+(("doom-bran" . ((user-emacs-directory . "~/doom-emacs")
+                    (env . (("DOOMDIR" . "~/.doom.d"))))))
+#+END_SRC
+
+If you have an existing emacs profile, you might name it /default/ with the following options:
+#+BEGIN_SRC elisp
+("default" . ((user-emacs-directory . "~/.my-emacs.d")))
+#+END_SRC
+** Run doom sync
+Assuming $DOOM is the location of your hlissner/doom-emacs clone:
+#+BEGIN_SRC sh
+$DOOM/bin/doom sync
+#+END_SRC
+** Install external dependencies
+* For me
+:PROPERTIES:
+:CUSTOM_ID: for-me-custom
+:END:
+** Programming enhancements
+:PROPERTIES:
+:CUSTOM_ID: programming-enhancements-custom
+:END:
+#+NAME: lang-modules
+#+BEGIN_SRC elisp
+:lang
+<<programming-init>>
+(org
+ +gnuplot
+ +jupyter
+ +pandoc
+ +pomodoro
+ +present
+ <<org-init-flags>>)
+bran-org
+#+END_SRC
+
+#+NAME: programming-enhancement-packages
+#+BEGIN_SRC elisp
+;;; programming enhancement
+
+<<help-packages>>
+
+<<programming-packages>>
+
+<<python-packages>>
+#+END_SRC
+
+#+NAME: programming-enhancement-config
+#+BEGIN_SRC elisp
+;;; programming enhancement config
+
+<<programming-config>>
+
+<<python-config>>
+
+<<magit-config>>
+#+END_SRC
+*** help
+:PROPERTIES:
+:CUSTOM_ID: help-custom
+:END:
+#+NAME: help-packages
+#+begin_src elisp
+;;; help packages
+(package! cheat-sh)
+(package! eldoc-overlay)
+#+end_src
+*** programming
+:properties:
+:custom_id: programming-custom
+:end:
+#+NAME: programming-init
+#+BEGIN_SRC elisp
+data
+emacs-lisp
+<<latex-init>>
+markdown
+python
+sh
+web
+#+END_SRC
+#+NAME: programming-packages
+#+BEGIN_SRC elisp
+;;; convenience functionality
+(package! lively)
+(package! live-preview)
+#+END_SRC
+**** latex
+:PROPERTIES:
+:CUSTOM_ID: latex-custom
+:END:
+Latex might go under "org-enhancements" personally, since my most frequent use case is exporting an org-mode document. In the meantime though doom provides some useful features for latex I didn't know about, which appear programming related.
+#+NAME: latex-init
+#+BEGIN_SRC elisp
+(latex
+ +cdlatex)
+#+END_SRC
+*** for python
+:PROPERTIES:
+:CUSTOM_ID: for-python-custom
+:END:
+#+NAME: python-packages
+#+BEGIN_SRC elisp
+;; for python
+(package! live-py-mode)
+#+END_SRC
+
+#+NAME: python-config
+#+BEGIN_SRC elisp
+;; for python
+(set-lookup-handlers! 'python-mode
+  :definition #'anaconda-mode-find-definitions
+  :references #'anaconda-mode-find-references
+  :documentation #'anaconda-mode-show-doc)
+#+END_SRC
+*** magit
+:PROPERTIES:
+:CUSTOM_ID: magit-custom
+:END:
+#+NAME: magit-init
+#+begin_src elisp
+(magit +forge)
+#+end_src
+** emacs enhancements
+:PROPERTIES:
+:CUSTOM_ID: emacs-enhancements-custom
+:END:
+#+NAME: emacs-enhancement-packages
+#+BEGIN_SRC elisp
+;;; emacs enhancements
+
+<<quality-of-life-packages>>
+
+<<external-browsing-inside-emacs-packages>>
+
+<<org-roam-extra-packages>>
+#+END_SRC
+#+NAME: emacs-enhancement-config
+#+BEGIN_SRC elisp
+;;; emacs enhancement config
+
+<<quality-of-life-config>>
+
+<<external-browsing-inside-emacs-config>>
+
+<<org-or-org-related-config>>
+#+END_SRC
+*** external browsing inside emacs
+:PROPERTIES:
+:CUSTOM_ID: external-browsing-inside-emacs-custom
+:END:
+#+NAME: external-browsing-inside-emacs-packages
+#+BEGIN_SRC elisp
+;;; external browsing inside emacs
+<<display-capture-utility-packages>>
+#+END_SRC
+#+NAME: external-browsing-inside-emacs-config
+#+BEGIN_SRC elisp
+<<display-capture-utility-config>>
+#+END_SRC
+**** for display or extraction
+:PROPERTIES:
+:CUSTOM_ID: for-display-or-extraction-custom
+:END:
+#+NAME: display-capture-utility-packages
+#+BEGIN_SRC elisp
+;; display and capture utilities for eww, gnus, books, etc.
+<<adoc-mode-package>>
+#+END_SRC
+#+NAME: display-capture-utility-config
+#+BEGIN_SRC elisp
+<<adoc-mode-config>>
+#+END_SRC
+***** adoc-mode
+:PROPERTIES:
+:CUSTOM_ID: adoc-mode-custom
+:END:
+
+#+NAME: adoc-mode-package
+#+BEGIN_SRC elisp
+(package! adoc-mode)
+#+END_SRC
+
+#+NAME: adoc-mode-config
+#+BEGIN_SRC elisp
+(use-package! adoc-mode
+  :defer 10
+  :init
+  (add-to-list 'auto-mode-alist '("\\.adoc\\'" . adoc-mode)))
+#+END_SRC
+*** org or org-related packages
+:PROPERTIES:
+:CUSTOM_ID: org-or-org-related-packages-custom
+:END:
+#+NAME: org-init-flags
+#+BEGIN_SRC elisp
+<<org-noter-init>>
+<<org-roam-init>>
+<<org-download-init>>
+<<org-journal-init>>
+#+END_SRC
+
+#+NAME: org-or-org-related-config
+#+BEGIN_SRC elisp
+;;; org or org-related configs
+
+<<org-gcal-functions-config>>
+
+<<ox-latex-config>>
+
+<<org-roam-config>>
+
+<<custom-org-config>>
+
+<<org-journal-config>>
+
+;;export options
+(after! org-pandoc
+  (setq org-pandoc-options '((template . "~/.local/share/pandoc/templates/eisvogel.latex"))))
+#+END_SRC
+**** org-noter
+:PROPERTIES:
+:CUSTOM_ID: org-noter-custom
+:END:
+org-noter allows you to annotate pdfs, with links to your annotation location
+stored within org. It has a flag within the =org= module:
+#+NAME: org-noter-init
+#+BEGIN_SRC elisp
++noter
+#+END_SRC
+**** ox-latex
+:PROPERTIES:
+:CUSTOM_ID: ox-latex-custom
+:END:
+ox-latex comes with other org export plugins, the customization here came from
+issues I had exporting code with line numbers early in org-mode usage.
+#+NAME: ox-latex-config
+#+BEGIN_SRC elisp
+(after! ox-latex
+  (setq org-latex-prefer-user-labels t
+    org-latex-packages-alist '(("newfloat" "minted"))
+    org-latex-pdf-process
+    '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+      "bibtex %b"
+      "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+      "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+  (setq org-latex-minted-options '(("frame" "lines") ("linenos" "true")("breaklines" "true"))))
+#+END_SRC
+**** org-roam
+:PROPERTIES:
+:CUSTOM_ID: org-roam-custom
+:END:
+Doom has org-roam available as an org flag.
+#+NAME: org-roam-init
+#+BEGIN_SRC elisp
++roam
+#+END_SRC
+#+NAME: org-roam-config
+#+BEGIN_SRC elisp
+(after! org-roam
+  (map! :leader
+        :prefix "n"
+        :desc "Org-Roam-Insert" "i" #'org-roam-insert
+        :desc "Org-Roam-Find"   "/" #'org-roam-find-file))
+#+END_SRC
+* For doom emacs
+:PROPERTIES:
+:CUSTOM_ID: for-doom-emacs-custom
+:END:
+** config.el
+:PROPERTIES:
+:CUSTOM_ID: config-el-custom
+:END:
+#+begin_src elisp :tangle config.el
+;;; ~/.doom.d/config.el -*- lexical-binding: t; -*-
+
+<<programming-enhancement-config>>
+
+<<emacs-enhancement-config>>
+ #+end_src
+** init.el
+:PROPERTIES:
+:CUSTOM_ID: init-el-custom
+:END:
+#+begin_src elisp :tangle init.el
+;;; init.el -*- lexical-binding: t; -*-
+
+;; This file controls what Doom modules are enabled and what order they load in.
+;; Remember to run 'doom sync' after modifying it!
+
+;; NOTE Press 'SPC h d h' (or 'C-h d h' for non-vim users) to access Doom's
+;;      documentation. There you'll find information about all of Doom's modules
+;;      and what flags they support.
+
+;; NOTE Move your cursor over a module's name (or its flags) and press 'K' (or
+;;      'C-c g k' for non-vim users) to view its documentation. This works on
+;;      flags as well (those symbols that start with a plus).
+;;
+;;      Alternatively, press 'gd' (or 'C-c g d') on a module to browse its
+;;      directory (for easy access to its source code).
+
+(doom! :input
+
+       <<completion-modules>>
+
+       <<ui-modules>>
+
+       <<editor-modules>>
+
+       <<emacs-modules>>
+
+       <<term-modules>>
+
+       <<checkers-modules>>
+
+       <<tools-modules>>
+
+       <<lang-modules>>
+
+       <<app-modules>>
+
+       <<config-modules>>)
+#+end_src
+** packages.el
+:PROPERTIES:
+:CUSTOM_ID: packages-el-custom
+:END:
+#+begin_src elisp :tangle packages.el
+;; -*- no-byte-compile: t; -*-
+;;; ~/.doom.d/packages.el
+
+;;; Examples:
+;; (package! some-package)
+;; (package! another-package :recipe (:fetcher github :repo "username/repo"))
+;; (package! builtin-package :disable t)
+
+<<programming-enhancement-packages>>
+
+<<emacs-enhancement-packages>>
+#+end_src

@@ -1,0 +1,86 @@
+#+TITLE: Config
+#+PROPERTY: header-args:elisp :noweb yes :cache yes
+
+* Guix
+Temporary placeholder for experimenting with guix.
+
+I'd like to start with a vm. That means either:
++ following one of the guix guide blogs I've subscribed to
++ or cloning this github repository: https://github.com/palfrey/guix-vm
+  + after that, use vagrant to spin up a vm to work with
+** Update
+<2020-04-25 Sat>
+Actually a little confused after spinning up a vagrant instance. What do I do next?
+I'll attempt to have guix side by side pacman to compare.
+#+name: guix-package
+#+BEGIN_SRC elisp
+(package! guix)
+#+END_SRC
+
+#+name: guix-config
+#+BEGIN_SRC elisp
+(use-package! guix
+  :commands (guix-help))
+#+END_SRC
+* helm-system-packages
+:properties:
+:custom_id: helm-system-packages-custom
+:end:
+#+NAME: helm-system-packages-package
+#+BEGIN_SRC elisp
+(package! helm-system-packages)
+#+END_SRC
+While I wish there were an out-of-the-box ivy interface that did this, helm-system-packages is quite the nifty interface, above and beyond package management in the shell. The first time I grokked this, I filtered through hundreds of packages, viewed several package websites, then downloaded them in about five minutes. Would have involved a lot of context switching for me in shell!
+
+#+NAME: helm-system-packages-config
+#+BEGIN_SRC elisp
+(use-package! helm-system-packages
+  :commands (helm-system-packages))
+#+END_SRC
+* system-packages
+:properties:
+:custom_id: system-packages-custom
+:end:
+#+NAME: system-pacakges-package
+#+BEGIN_SRC elisp
+(package! system-packages)
+#+END_SRC
+
+A decent package, if it were not for =helm-system-packages= I'd appreciate this package bringing pacman and friends into the emacs fold. But the way I used this only made it seem like a thin emacs wrapper to the shell, so helm's interface had this beat.
+* aurel
+:properties:
+:custom_id: aurel-custom
+:end:
+#+NAME: aurel-package
+#+BEGIN_SRC elisp
+(when (featurep! +aur)
+  (package! aurel))
+#+END_SRC
+
+Aurel is an emacs friendly aur navigator. This is both an opportunity to use emacs for package browsing in lieu of being able to use guix at the moment, as well as a chance to utilize doom conditional syntax.
+
+This is one of the places where doom conditional syntax might come in handy:
+#+BEGIN_SRC elisp
+(:cond ((string= system-name "manjaro")
+        aurel))
+
+(:if ((string= system-name "arch")
+      (icicles +imenu))
+ helm-system-packages)
+#+END_SRC
+* tangling
+#+BEGIN_SRC elisp :tangle packages.el
+;; -*- no-byte-compile: t; -*-
+;;; tools/bran-pack/packages.el
+
+<<helm-system-packages-package>>
+
+<<aurel-package>>
+#+END_SRC
+#+BEGIN_SRC elisp :tangle config.el
+;;; tools/bran-pack/config.el -*- lexical-binding: t; -*-
+
+<<helm-system-packages-config>>
+
+<<aurel-config>>
+#+END_SRC

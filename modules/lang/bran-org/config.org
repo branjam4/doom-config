@@ -1,0 +1,348 @@
+#+TITLE: Config
+
+* org or org-related packages
+** TODO (maybe move to system management tools) org-tanglesync
+:PROPERTIES:
+:CUSTOM_ID: org-tanglesync-custom
+:END:
+#+NAME: org-tanglesync-package
+#+BEGIN_SRC elisp
+(package! org-tanglesync)
+#+END_SRC
+#+NAME: org-tanglesync-config
+#+BEGIN_SRC elisp
+(use-package! org-tanglesync
+  :after (org-mode)
+  :hook ((org-mode . org-tanglesync-mode)
+         ;; enable watch-mode globally:
+         ((prog-mode text-mode) . '(org-tanglesync-watch-mode)))
+  :custom
+  (org-tanglesync-watch-files '("~/projects/projects.org"))
+  :bind
+  (( "C-c M-i" . org-tanglesync-process-buffer-interactive)
+   ( "C-c M-a" . org-tanglesync-process-buffer-automatic)))
+#+END_SRC
+** custom org config
+:PROPERTIES:
+:CUSTOM_ID: custom-org-config-custom
+:END:
+#+NAME: custom-org-config
+#+BEGIN_SRC elisp :noweb yes
+<<org-update-all-dblocks-on-save>>
+#+END_SRC
+*** org-update-all-dblocks
+I'm getting into dynamic blocks, so I don't think it would hurt to automatically have dblocks update on save.
+#+NAME: org-update-all-dblocks-on-save
+#+BEGIN_SRC elisp
+(after! org
+  (add-to-list 'org-modules 'ol-w3m)
+  (add-to-list 'org-modules 'ol-info)
+  (add-hook 'before-save-hook 'org-update-all-dblocks))
+#+END_SRC
+** org-web-tools
+:PROPERTIES:
+:CUSTOM_ID: org-web-tools-custom
+:END:
+#+NAME: org-web-tools-package
+#+BEGIN_SRC elisp
+(package! org-web-tools)
+#+END_SRC
+
+This nifty package (usually):
+1. Takes the top link in the kill-ring
+2. Downloads it with ~curl~
+3. formats the page content to org using ~pandoc~
+
+From there you can:
++ Store a link in org-mode with the canonical title of the page (instead of manually defining that yourself)
++ Store the whole page as a sibling entry within an org document
++ Open the page in an org-mode buffer
+
+I've commonly used ~link-hint-copy-link~ to put a url in the kill-ring, so I'm defining some functions specifically for this workflow.
+#+NAME: org-web-tools-config
+#+BEGIN_SRC elisp
+(use-package! org-web-tools
+  :commands (org-web-tools-insert-web-page-as-entry org-web-tools-read-url-as-org org-web-tools-insert-link-for-url)
+  :preface
+  (map! :leader "L" #'link-hint-copy-link)
+  (map! :leader
+        (:prefix "o"
+         :desc "Org-Webpage (with link hint)" "w" #'copy-link-read-as-org
+         :desc "Org-Webpage (from clipboard)" "W" #'org-web-tools-read-url-as-org)
+        (:map org-mode-map
+         :leader
+         (:prefix "i"
+          :desc "Insert link hint as org-heading" "w" #'copy-link-insert-org-web-entry
+          :desc "Webpage org-heading from clipboard" "W" #'org-web-tools-insert-web-page-as-entry)
+         (:localleader
+          :prefix "l"
+          :desc "Insert link hint as org-link" "w" #'org-web-tools-insert-link-for-url
+          :desc "Webpage as org-link from clipboard" "W" #'copy-link-insert-org-link))))
+
+#+END_SRC
+
+#+NAME: org-web-tools-autoloads
+#+BEGIN_SRC elisp
+;;;###autoload
+(defun copy-link-read-as-org ()
+  "Copy a link with link-hint-copy-link,
+   then use org-web-tools to download the page content
+   and display it in an org-buffer"
+  (interactive)
+  (org-web-tools-read-url-as-org (or (thing-at-point-url-at-point)
+                                     (link-hint-copy-link)
+                                     (org-web-tools--read-url))))
+
+;;;###autoload
+(defun copy-link-insert-org-web-entry ()
+  "Copy a link with link-hint-copy-link,\n then use org-web-tools to download the page content
+   and display it as a sibling of the current org heading"
+  (interactive)
+  (org-web-tools-insert-web-page-as-entry (or (thing-at-point-url-at-point)
+                                              (link-hint-copy-link)
+                                              (org-web-tools--read-url))))
+
+;;;###autoload
+(defun copy-link-insert-org-link ()
+  "Copy a link with link-hint-copy-link,\n then use org-web-tools to download the page content
+   and display it as a sibling of the current org heading"
+  (interactive)
+  (org-web-tools-insert-link-for-url (or (thing-at-point-url-at-point)
+                                         (link-hint-copy-link)
+                                         (org-web-tools--read-url))))
+#+END_SRC
+** TODO ob-docker-build
+:PROPERTIES:
+:CUSTOM_ID: ob-docker-build-custom
+:END:
+
+#+NAME: ob-docker-build-package
+#+BEGIN_SRC elisp
+(package! ob-docker-build :recipe (:host github :repo "ifitzpat/ob-docker-build"))
+#+END_SRC
+
+This allows for org-babel src blocks dedicated to docker build functions.
+** yankpad
+:PROPERTIES:
+:CUSTOM_ID: yankpad-custom
+:END:
+#+NAME: yankpad-package
+#+BEGIN_SRC elisp
+(package! yankpad)
+#+END_SRC
+#+NAME: yankpad-config
+#+BEGIN_SRC elisp
+(use-package! yankpad
+  :commands (yankpad-map yankpad-expand yankpad-insert)
+  :custom
+  (yankpad-file "~/org/yankpad.org")
+  :config
+  ;; If you want to complete snippets using company-mode
+  (after! yas
+    (add-to-list 'company-backends #'company-yankpad))
+  :init
+  (map! :leader
+        :desc "Yankpad map" "Y" #'yankpad-map
+        ;; TODO map function for quick yankpad special property
+        ;; (i.e. regular expression transform)
+        (:prefix-map ("y" . "yankpad")
+          :desc "Append yankpad category" "a" #'yankpad-append-category
+          :desc "Yankpad capture snippet" "c" #'yankpad-capture-snippet
+          :desc "Edit yankpad.org" "e" #'yankpad-edit
+          :desc "Insert yankpad snippet" "i" #'yankpad-insert
+          :desc "Set yankpad category" "s" #'yankpad-set-category
+          :desc "Expand word at point" "x" #'yankpad-expand
+          :desc "Clear yankpad cache" "r" #'yankpad-reload
+          :desc "Repeat last used snippet" "'" #'yankpad-repeat)))
+#+END_SRC
+
+#+RESULTS: yankpad-config
+
+** [#A] org-ehtml
+#+BEGIN_QUOTE
+Export Org-mode files as editable web pages
+#+END_QUOTE
+#+NAME: org-ehtml-package
+#+BEGIN_SRC elisp
+(package! org-ehtml)
+#+END_SRC
+This is the only package that offers fast org editing feedback loops in both directions.
+Uses javascript on the html end.
+
+#+NAME: org-ehtml-config
+#+BEGIN_SRC elisp
+(use-package! org-ehtml
+  :defer t
+  :config
+  (setq
+   org-ehtml-everything-editable t
+   org-ehtml-docroot (expand-file-name "~/org/roam")
+   my-org-ehtml-port 3333
+   )
+
+  :init
+  (require 'org-ehtml)
+  (ws-start 'org-ehtml-handler my-org-ehtml-port))
+#+END_SRC
+use =(mapc #'ws-stop ws-servers)= to stop web servers
+
+Try out the examples!
+#+BEGIN_EXAMPLE elisp
+(setq org-ehtml-docroot (expand-file-name "~/doom-emacs/.local/straight/repos/org-ehtml/test/examples/"))
+#+END_EXAMPLE
+Commit files to version control after edit
+#+BEGIN_EXAMPLE elisp
+(add-hook
+   'org-ehtml-after-save-hook
+   (lambda ()
+     (let ((file (buffer-file-name (current-buffer))))
+       (vc-checkin (list file) (vc-backend file) nil "edit through org-ehtml"))))
+#+END_EXAMPLE
+*** Agenda View
+org-ehtml supports viewing the Agenda buffer.  It can be enabled by
+setting =org-ehtml-allow-agenda= to a non-nil value.  The agenda can
+be viewed by adding =/agenda/CMD= to the url with =CMD= being one of
+
+- day, week, fortnight, month, year :: Show =org-agenda-list= in that
+     range.  An additional argument can be provided to set the start
+     date.  E.g., http://localhost:8888/agenda/day/2013-11-11 to view
+     the agenda for the day of [2013-11-11 Mon]
+- any natural number ($n>0$) :: Show =org-agenda-list= for that many
+     days.  Similar to using =day=, =week=, etc.
+- todo :: Show =org-todo-list=.
+- tags :: Show =org-tags-view=.  It requires an additional argument
+          (separated by a /) specifying the tag.  Using =todo= as
+          first argument will limit the search to TODO entries.  E.g.,
+          http://localhost:8888/agenda/tags/work to show all headlines
+          tagged =:work:= and
+          http://localhost:8888/agenda/tags/todo/work to only show
+          headlines tagged =:work:= and marked TODO.
+
+** org-babel-eval-in-repl
+:properties:
+:custom_id: org-babel-eval-in-repl-custom
+:end:
+#+NAME: org-babel-eval-in-repl-package
+#+BEGIN_SRC elisp
+(package! org-babel-eval-in-repl)
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+This package allows you to execute org-mode (babel) source code blocks with eval-in-repl.
+## Features
+- Async execution (because it uses an external process!)
+- Babel execution without the output written in the buffer (Less visual distraction! Output is reproducible as long as the code is saved)
+#+END_EXAMPLE
+
+#+NAME: org-babel-eval-in-repl-example-config
+#+BEGIN_SRC elisp
+;; TODO investigate config options
+;## Usage and recommended config (optional):
+(after! eval-in-repl
+  (setq eir-jump-after-eval nil)
+  (define-key org-mode-map (kbd "C-<return>") 'ober-eval-in-repl)
+  (define-key org-mode-map (kbd "C-c C-c") 'ober-eval-block-in-repl))
+#+END_SRC
+** org-ref
+:PROPERTIES:
+:custom_id: org-ref-custom
+:END:
+#+NAME: org-ref-package
+#+BEGIN_SRC elisp
+(package! org-ref)
+#+END_SRC
+#+NAME: org-ref-config
+#+begin_src elisp
+(after! org-ref
+  (when (featurep! :completion ivy)
+    (setq org-ref-completion-library 'org-ref-ivy-cite)))
+#+end_src
+This is an example configuration found in org-ref's README:
+#+BEGIN_SRC emacs-lisp
+(setq reftex-default-bibliography '("~/Dropbox/bibliography/references.bib"))
+
+;; see org-ref.org in the same directory for these
+(setq org-ref-bibliography-notes "~/Dropbox/bibliography/notes.org"
+      org-ref-default-bibliography '("~/Dropbox/bibliography/references.bib")
+      org-ref-pdf-directory "~/Dropbox/bibliography/bibtex-pdfs/")
+
+(setq bibtex-completion-bibliography "~/Dropbox/bibliography/references.bib"
+      bibtex-completion-library-path "~/Dropbox/bibliography/bibtex-pdfs"
+      bibtex-completion-notes-path "~/Dropbox/bibliography/helm-bibtex-notes")
+
+;; open pdf alternative (current default is 'find file)
+;; (setq bibtex-completion-pdf-open-function 'org-open-file)
+#+END_SRC
+** org-bibtex
+#+NAME: org-bibtex-config
+#+BEGIN_SRC elisp
+;; manage citations
+(use-package! org-bibtex
+  :commands (org-bibtex org-bibtex-check doi-utils-doi-to-org-bibtex org-bibtex-yank) )
+;; export citations
+(use-package! ox-bibtex
+  :after ox
+  :init
+  (setq org-bibtex-file (expand-file-name "~/org/roam/papers.org")))
+
+#+END_SRC
+** org-ql
+#+NAME: org-ql-package
+#+BEGIN_SRC elisp
+(package! org-ql)
+#+END_SRC
+* tangle
+#+RESULTS:
+#+BEGIN_SRC elisp :tangle ~/.doom.d/modules/lang/bran-org/packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; lang/bran-org/packages.el
+
+<<org-tanglesync-package>>
+
+(when (featurep! :app browse)
+  <<org-web-tools-package>>
+  <<org-ql-package>>)
+
+(when (featurep! :editor snippets)
+  <<yankpad-package>>)
+
+(when (featurep! :tools docker)
+  <<ob-docker-build-package>>)
+
+(when (featurep! +preview)
+  <<org-ehtml-package>>)
+
+(when (featurep! +ref)
+  <<org-ref-package>>)
+
+(when (featurep! +repl)
+  <<org-babel-eval-in-repl-package>>)
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/modules/lang/bran-org/config.el :noweb yes
+;;; lang/bran-org/config.el -*- lexical-binding: t; -*-
+
+<<org-tanglesync-config>>
+
+<<custom-org-config>>
+
+(when (featurep! :app browse)
+  <<org-web-tools-config>>)
+
+(when (featurep! :editor snippets)
+  <<yankpad-config>>)
+
+(when (featurep! +ref)
+  <<org-ref-config>>
+  <<org-bibtex-config>>)
+
+(when (featurep! +repl)
+  <<org-babel-eval-in-repl-example-config>>)
+
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle ~/.doom.d/modules/lang/bran-org/autoload.el :noweb yes
+;;; lang/bran-org/autoload.el -*- lexical-binding: t; -*-
+
+<<org-web-tools-autoloads>>
+#+END_SRC

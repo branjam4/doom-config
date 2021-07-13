@@ -1,0 +1,70 @@
+#+TITLE: Config
+
+* for/with eshell
+#+BEGIN_SRC elisp
+;;; eshell config
+
+#+END_SRC
+** aweshell
+:PROPERTIES:
+:CUSTOM_ID: aweshell-custom
+:END:
+#+NAME: aweshell-package
+#+BEGIN_SRC elisp
+(package! aweshell :recipe (:host github :repo "manateelazycat/aweshell"))
+#+END_SRC
+#+NAME: aweshell-config
+#+BEGIN_SRC elisp
+(use-package! aweshell
+  :after eshell)
+#+END_SRC
+** piper
+:PROPERTIES:
+:CUSTOM_ID: piper-custom
+:END:
+#+NAME: emacs-piper-package
+#+BEGIN_SRC elisp
+(package! emacs-piper :recipe (:host gitlab :repo "howardabrams/emacs-piper"))
+#+END_SRC
+#+NAME: piper-config
+#+BEGIN_SRC elisp
+(use-package! piper
+  :after elisp-mode
+  :bind (("C-c C-|" . piper)))
+#+END_SRC
+* tangle
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; term/bran-eshell/packages.el
+
+(package! esh-autosuggest)
+<<aweshell-package>>
+<<emacs-piper-package>>
+
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle config.el :noweb yes
+;;; term/bran-eshell/config.el -*- lexical-binding: t; -*-
+
+<<aweshell-config>>
+
+<<piper-config>>
+
+(add-hook! 'eshell-mode-hook #'setup-eshell-ivy-completion #'expand-eshell-password-cache-expiry)
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle autoload.el :noweb yes
+;;; term/bran-eshell/autoload.el -*- lexical-binding: t; -*-
+;;;###autoload
+(defun setup-eshell-ivy-completion ()
+  (define-key eshell-mode-map [remap eshell-pcomplete] 'completion-at-point)
+  ;; only if you want to use the minibuffer for completions instead of the
+  ;; in-buffer interface
+  (setq-local ivy-display-functions-alist
+              (remq (assoc 'ivy-completion-in-region ivy-display-functions-alist)
+                    ivy-display-functions-alist)))
+
+;;;###autoload
+(defun expand-eshell-password-cache-expiry ()
+  (setq password-cache-expiry 3600))
+#+END_SRC

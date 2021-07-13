@@ -1,0 +1,49 @@
+#+TITLE: Config
+
+* TODO (reorganize) for/with ivy
+:PROPERTIES:
+:CUSTOM_ID: for/with-ivy-custom
+:END:
+#+NAME: ivy-packages
+#+BEGIN_SRC elisp
+(package! counsel-web)
+(package! counsel-css)
+(package! counsel-org-capture-string)
+(package! counsel-org-clock)
+(package! counsel-jq)
+(when (featurep! +youtube)
+  (package! ivy-youtube))
+(package! counsel-ffdata)
+(package! counsel-notmuch)
+#+END_SRC
+#+NAME: ivy-config
+#+BEGIN_SRC elisp
+(use-package! counsel-web
+  :commands (counsel-search counsel-web-suggest)
+  :init
+  (map! :leader
+        :prefix "s"
+        :desc "Web search with counsel" "c" #'counsel-web-suggest))
+
+(after! counsel-web
+  (setq! counsel-web-search-action #'org-web-tools-read-url-as-org))
+
+(when (featurep! +youtube)
+  (use-package! ivy-youtube
+    :commands (ivy-youtube)))
+#+END_SRC
+* tangle
+#+BEGIN_SRC elisp :tangle packages.el :noweb yes
+;; -*- no-byte-compile: t; -*-
+;;; completion/bran-ivy/packages.el
+
+<<ivy-packages>>
+
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle config.el :noweb yes
+;;; completion/bran-ivy/config.el -*- lexical-binding: t; -*-
+
+<<ivy-config>>
+
+#+END_SRC

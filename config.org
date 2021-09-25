@@ -165,6 +165,7 @@ $DOOM/bin/doom sync
  +present
  <<org-init-flags>>)
 bran-org
+yaml
 #+END_SRC
 
 #+NAME: programming-enhancement-packages
